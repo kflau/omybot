@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -15,8 +16,7 @@ import (
 
 var buffer = make([][]byte, 0)
 
-var webhook = os.Getenv("DISCORD_WEBHOOK")
-var token = os.Getenv("DISCORD_BOT_TOKEN")
+var webhook = ""
 
 type JokeApiResponse struct {
 	Value JokeBody `json:"value`
@@ -30,9 +30,18 @@ type JokeBody struct {
 }
 
 func main() {
+	tokenPtr := flag.String("token", "", "Discord Bot token")
+	webhookPtr := flag.String("webhook", "", "Discord Webhook URL")
+	flag.Parse()
 
+	token := *tokenPtr
 	if token == "" {
-		fmt.Println("No token provided. Please run: discord-chuck-norris -t <bot token>")
+		fmt.Println("No token provided. -token <bot token>")
+		return
+	}
+	webhook := *webhookPtr
+	if webhook == "" {
+		fmt.Println("No webhook provided. -webhook <webhook URL>")
 		return
 	}
 
