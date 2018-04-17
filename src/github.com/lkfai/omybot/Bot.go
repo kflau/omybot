@@ -39,7 +39,7 @@ func main() {
 		fmt.Println("No token provided. -token <bot token>")
 		return
 	}
-	webhook := *webhookPtr
+	webhook = *webhookPtr
 	if webhook == "" {
 		fmt.Println("No webhook provided. -webhook <webhook URL>")
 		return
@@ -103,14 +103,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-//Send joke as a tts (test to speech) message
 func sendJoke() (err error) {
-	// Get a Chuck Norris joke
 	joke, err := getJoke()
 	if err != nil {
 		return err
 	}
-	// Send
 	resp, err := http.PostForm(webhook, url.Values{"content": {joke}, "tts": {"true"}})
 	fmt.Println(resp)
 	if err != nil {
@@ -121,11 +118,9 @@ func sendJoke() (err error) {
 		fmt.Println(resp)
 		return err
 	}
-
 	return nil
 }
 
-//Fetch Chuck Norris Joke
 func getJoke() (string, error) {
 	resp, err := http.Get("http://api.icndb.com/jokes/random")
 	if err != nil {
