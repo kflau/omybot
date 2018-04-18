@@ -120,16 +120,17 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if strings.HasPrefix(m.Content, "!quote") {
-		err := sendQuote()
+	if strings.HasPrefix(m.Content, "!quote ") || strings.HasPrefix(m.Content, "!q ") {
+		args := strings.Fields(m.Content)[1:]
+		err := sendQuote(args)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
 }
 
-func sendQuote() (err error) {
-	quote, err := getQuote()
+func sendQuote(args []string) (err error) {
+	quote, err := getQuote(args)
 	if err != nil {
 		return err
 	}
@@ -145,18 +146,22 @@ func sendQuote() (err error) {
 	return nil
 }
 
-func getQuote() (string, error) {
+func getQuote(args []string) (string, error) {
 	param := url.Values{}
 	param.Set("hchart", "1")
 	param.Add("span", "0")
 	param.Add("int", "0")
 	param.Add("qid", "1524020346220")
-	param.Add("ric", ricCode)
+	param.Add("ric", args[0])
 	param.Add("token", hkexToken)
 	param.Add("callback", "a")
 	resp, err := http.Get("http://www1.hkex.com.hk/hkexwidget/data/getchartdata2?" + param.Encode())
 	if err != nil {
 		fmt.Println("Could not fetch quote")
+		return "nil", err
+	}
+	if resp.StatusCode != 200 {
+		fmt.Println("HTTP StatusCode not OK")
 		return "nil", err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
