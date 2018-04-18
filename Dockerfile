@@ -1,8 +1,9 @@
 FROM golang
-RUN git clone https://github.com/bwmarrin/discordgo /go/src/github.com/bwmarrin/discordgo
-RUN git clone https://github.com/gorilla/websocket /go/src/github.com/gorilla/websocket
+RUN git clone https://github.com/bwmarrin/discordgo $GOPATH/src/github.com/bwmarrin/discordgo
+RUN git clone https://github.com/gorilla/websocket $GOPATH/src/github.com/gorilla/websocket
 RUN go get golang.org/x/crypto/nacl/secretbox
-COPY src/github.com/lkfai/omybot /home/root/
-RUN go build -a /home/root/Bot.go
-RUN chmod a+x /go/Bot
-CMD ["/go/Bot"]
+COPY src/ $GOPATH/src/
+WORKDIR $GOPATH/bin
+RUN go build -a $GOPATH/src/github.com/lkfai/omybot/*.go
+RUN chmod a+x $GOPATH/bin/Bot
+CMD ["/go/bin/Bot"]
