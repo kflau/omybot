@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"math/big"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -14,13 +15,38 @@ import (
 	"syscall"
 )
 
-var buffer = make([][]byte, 0)
+// var buffer = make([][]byte, 0)
 
-var webhook = ""
+var (
+	webhook string 		= ""
+)
+
+type QuoteApiResponse struct {
+	data QuoteData
+	qid string
+}
+
+func (b QuoteApiResponse) String() string {
+	return fmt.Sprintf("%+v", b)
+}
+
+type QuoteData struct {
+	responsecode string
+	responsemsg string
+	datalist [][]int
+	start_h int
+	start_m int
+	end_h int
+	end_m int
+}
+
+func (b QuoteData) String() string {
+	return fmt.Sprintf("%+v", b.datalist)
+}
 
 type JokeApiResponse struct {
-	Value JokeBody `json:"value`
-	Type  string   `json:"type`
+	Value JokeBody `json:"value"`
+	Type  string   `json:"type"`
 }
 
 type JokeBody struct {
@@ -44,7 +70,7 @@ func main() {
 		fmt.Println("No webhook provided. -webhook <webhook URL>")
 		return
 	}
-
+	
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
@@ -93,14 +119,77 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// check if the message is "!joke"
-	if strings.HasPrefix(m.Content, "!joke") {
-		// Send Joke
+	if strings.HasPrefix(m.Content, "!quote") {
+		err := sendQuote()
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else if strings.HasPrefix(m.Content, "!joke") {
 		err := sendJoke()
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
+}
+
+func sendQuote() (err error) {
+	quote, err := getQuote()
+	if err != nil {
+		return err
+	}
+	resp, err := http.PostForm(webhook, url.Values{"content": {quote}, "tts": {"true"}})
+	if err != nil {
+		fmt.Println("Couldn't send message")
+		fmt.Println(err)
+		return err
+	} else {
+		fmt.Println(resp)
+		return err
+	}
+	return nil
+}
+
+func getQuote() (string, error) {
+	resp, err := http.Get("http://www1.hkex.com.hk/hkexwidget/data/getchartdata2?hchart=1&span=0&int=0&ric=0005.HK&token=evLtsLsBNAUVTPxtGqVeG9B8MG%2bJ3ol24O59BU10wpi6NUJBeKz0Uz2Zu%2bSElSqf&qid=1524020346220&callback=a")
+	if err != nil {
+		fmt.Println("Could not fetch quote")
+		return "nil", err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Unknown response body")
+		return "nil", err
+	}
+
+	bodyStr := string(body)
+    runes := []rune(bodyStr)
+    jsonBlob := string(runes[2:strings.LastIndex(bodyStr, ")")])
+	
+	var quoteResponse map[string]interface{}
+	var price big.Float
+
+	if err := json.Unmarshal([]byte(jsonBlob), &quoteResponse); err != nil {
+        fmt.Println(err)
+        return "nil", err
+    }
+    for key, value := range quoteResponse["data"].(map[string]interface{}) {
+	    if key == "datalist" {
+	    	prices := value.([]interface{})
+	    	if len(prices) < 1 {
+	    		fmt.Println("No prices from HKEX")
+	    		return "nil", err
+	    	}
+	    	prices = prices[1].([]interface{})
+	    	if len(prices) < 1 {
+	    		fmt.Println("No prices from HKEX")
+	    		return "nil", err
+	    	}
+	    	price = *big.NewFloat(prices[1].(float64))
+		    break
+	    }
+	}
+	fmt.Println("Quoted price: ", price.String())
+	return price.String(), nil
 }
 
 func sendJoke() (err error) {
