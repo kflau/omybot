@@ -79,20 +79,15 @@ func main() {
 		return
 	}
 
-	// Register ready as a callback for the ready events.
 	dg.AddHandler(ready)
-
-	// Register messageCreate as a callback for the messageCreate events.
 	dg.AddHandler(messageCreate)
 
-	// Open the websocket and begin listening.
 	err = dg.Open()
 	if err != nil {
 		fmt.Println("Error opening Discord session: ", err)
 	}
 
-	// Wait here until CTRL-C or other term signal is received.
-	fmt.Println("Discord Chuck Norris bot is now running.  Press CTRL-C to exit.")
+	fmt.Println("OMyBot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
@@ -101,25 +96,16 @@ func main() {
 	dg.Close()
 }
 
-// This function will be called (due to AddHandler above) when the bot receives
-// the "ready" event from Discord.
 func ready(s *discordgo.Session, event *discordgo.Ready) {
-
-	// Set the playing status.
-	s.UpdateStatus(0, "!joke")
+	s.UpdateStatus(0, "OMyBot")
 }
 
-// This function will be called (due to AddHandler above) every time a new
-// message is created on any channel that the autenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	fmt.Println("Recieved Message: ")
-	fmt.Println(m.Content)
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
+	// Messages are boardcasted even to myself
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
-
+	fmt.Println("Received Message: \n", m.Content)
 	if strings.HasPrefix(m.Content, "!quote ") || strings.HasPrefix(m.Content, "!q ") {
 		args := strings.Fields(m.Content)[1:]
 		err := sendQuote(args)
