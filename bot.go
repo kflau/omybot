@@ -16,19 +16,16 @@ var (
 )
 
 func main() {
-	tokenPtr := flag.String("token", "", "Discord Bot token")
-	webhookPtr := flag.String("webhook", "", "Discord Webhook URL")
-	hkexTokenPtr := flag.String("hkexToken", "", "HKEX Token")
+	token := *new(string)
+	flag.StringVar(&token, "token", "", "Discord Bot token")
+	flag.StringVar(&webhook, "webhook", "", "Discord Webhook URL")
+	flag.StringVar(&hkexToken, "hkexToken", "", "HKEX Token")
 	flag.Parse()
-
-	if *tokenPtr == "" || *webhookPtr == "" || *hkexTokenPtr == "" {
+	if token == "" || webhook == "" || hkexToken == "" {
 		flag.PrintDefaults()
 		return
 	}
 
-	token := *tokenPtr
-	webhook = *webhookPtr
-	hkexToken = *hkexTokenPtr
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		fmt.Printf("Error creating Discord session: %v\n", err)
