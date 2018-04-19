@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	webhook string 		= ""
-	hkexToken string 	= ""
+	webhook 		string
+	hkexToken 		string
+	botName 		string
 )
 
 func main() {
@@ -20,8 +21,9 @@ func main() {
 	flag.StringVar(&token, "token", "", "Discord Bot token")
 	flag.StringVar(&webhook, "webhook", "", "Discord Webhook URL")
 	flag.StringVar(&hkexToken, "hkexToken", "", "HKEX Token")
+	flag.StringVar(&botName, "botName", "", "HKEX Token")
 	flag.Parse()
-	if token == "" || webhook == "" || hkexToken == "" {
+	if token == "" || webhook == "" || hkexToken == "" || botName == "" {
 		flag.PrintDefaults()
 		return
 	}
@@ -53,7 +55,7 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Messages are boardcasted even to myself, ignore message sent by myself
-	if m.Author.ID == s.State.User.ID { // exclude Bot (OMyBot#6634)
+	if botName == m.Author.Username && m.Author.Bot {
 		return
 	}
 	if m.Type == discordgo.MessageTypeGuildMemberJoin {
