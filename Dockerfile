@@ -5,5 +5,5 @@ RUN go get golang.org/x/crypto/nacl/secretbox
 COPY src/ $GOPATH/src/
 WORKDIR $GOPATH/bin
 RUN go build -a $GOPATH/src/github.com/lkfai/omybot/*.go
-RUN chmod a+x $GOPATH/bin/Bot
-CMD ["/go/bin/Bot"]
+RUN chmod a+x $GOPATH/bin/bot
+CMD ["/go/bin/bot"]
