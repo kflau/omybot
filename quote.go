@@ -17,13 +17,13 @@ type Quote struct {
     hkexToken       string
 }
 
-func (m *Quote) getQuote(args []string) (error) {
+func (m *Quote) getQuote() (error) {
     param := url.Values{}
     param.Set("hchart", "1")
     param.Add("span", "0")
     param.Add("int", "0")
     param.Add("qid", "1524020346220")
-    param.Add("ric", args[0])
+    param.Add("ric", m.ric)
     param.Add("token", m.hkexToken)
     param.Add("callback", "a")
     resp, err := http.Get("http://www1.hkex.com.hk/hkexwidget/data/getchartdata2?" + param.Encode())
