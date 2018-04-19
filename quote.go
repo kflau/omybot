@@ -43,19 +43,22 @@ func (m *Quote) getQuote(args []string) (error) {
     bodyStr := string(body)
     runes := []rune(bodyStr)
     jsonBlob := string(runes[2:strings.LastIndex(bodyStr, ")")])
-    quoteResponse := *new(map[string]interface{})
+
+    type QuoteResponse = map[string]interface{}
+    type NodeList = []interface{}
+    quoteResponse := &QuoteResponse{}
     if err := json.Unmarshal([]byte(jsonBlob), &quoteResponse); err != nil {
         fmt.Printf("%v\n", err)
         return err
     }
-    for key, value := range quoteResponse["data"].(map[string]interface{}) {
+    for key, value := range (*quoteResponse)["data"].(QuoteResponse) {
         if key == "datalist" {
-            prices := value.([]interface{})
+            prices := value.(NodeList)
             if len(prices) < 1 {
                 fmt.Printf("No prices from HKEX\n")
                 return err
             }
-            prices = prices[1].([]interface{})
+            prices = prices[1].(NodeList)
             if len(prices) < 1 {
                 fmt.Printf("No prices from HKEX\n")
                 return err

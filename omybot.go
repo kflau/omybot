@@ -16,7 +16,7 @@ var (
 )
 
 func main() {
-	token := *new(string)
+	token := ""
 	flag.StringVar(&token, "token", "", "Discord Bot token")
 	flag.StringVar(&webhook, "webhook", "", "Discord Webhook URL")
 	flag.StringVar(&hkexToken, "hkexToken", "", "HKEX Token")
