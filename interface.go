@@ -1,14 +1,14 @@
 package main
 
-type DiscordLifecycle interface {
+type MessageCreateHandler interface {
 
 	New() interface{}
 
 	Type() string
 
-	MemberJoin([]interface{}) (string, error)
+	MemberJoin(*discordgo.MessageCreate) (string, error)
 
-	Forward([]interface{}) (string, error)
+	Forward(*discordgo.MessageCreate) (string, error)
 
-	Reply([]interface{}) (string, error)
+	Reply(*discordgo.MessageCreate) (string, error)
 }
