@@ -1,3 +1,4 @@
 
 *.exe
 debug
+.DS_Store
