@@ -1,4 +1,4 @@
-package omybot
+package main
 
 import (
     "fmt"
@@ -17,24 +17,7 @@ type Quote struct {
     hkexToken       string
 }
 
-
-func (m *Quote) String() string {
-        return fmt.Sprintf("[price:%v, ric:%v]", m.price, m.ric)
-}
-
-func (m *Quote) sendQuote() (error) {
-    resp, err := http.PostForm(m.webhook, url.Values{"content": {m.price.String()}, "tts": {"true"}})
-    if err != nil {
-        fmt.Printf("Couldn't send message %v\n", err)
-        return err
-    } else if resp.StatusCode != 200 {
-        fmt.Printf("HTTP StatusCode %v, %v\n", resp.StatusCode, resp)
-        return err
-    }
-    return nil
-}
-
-func (m *Quote)  getQuote(args []string) (error) {
+func (m *Quote) getQuote(args []string) (error) {
     param := url.Values{}
     param.Set("hchart", "1")
     param.Add("span", "0")
@@ -48,8 +31,8 @@ func (m *Quote)  getQuote(args []string) (error) {
         fmt.Printf("Could not fetch quote\n")
         return err
     }
-    if resp.StatusCode != 200 {
-        fmt.Printf("HTTP StatusCode not OK\n")
+    if resp.StatusCode != 200 && resp.StatusCode != 204 {
+        fmt.Printf("HTTP StatusCode is invalid: %v\n", resp.StatusCode)
         return err
     }
     body, err := ioutil.ReadAll(resp.Body)
@@ -60,7 +43,6 @@ func (m *Quote)  getQuote(args []string) (error) {
     bodyStr := string(body)
     runes := []rune(bodyStr)
     jsonBlob := string(runes[2:strings.LastIndex(bodyStr, ")")])
-    price := *big.NewFloat(0)
     quoteResponse := *new(map[string]interface{})
     if err := json.Unmarshal([]byte(jsonBlob), &quoteResponse); err != nil {
         fmt.Printf("%v\n", err)
@@ -78,11 +60,26 @@ func (m *Quote)  getQuote(args []string) (error) {
                 fmt.Printf("No prices from HKEX\n")
                 return err
             }
-            price = *big.NewFloat(prices[1].(float64))
+            m.price = *big.NewFloat(prices[1].(float64))
+            fmt.Printf("Quoted price: %v\n", m.price.String())
             break
         }
     }
-    fmt.Printf("Quoted price: %v\n", price.String())
-    m.price = price
     return nil
+}
+
+func (m *Quote) sendQuote() (error) {
+    resp, err := http.PostForm(m.webhook, url.Values{"content": {m.price.String()}, "tts": {"true"}})
+    if err != nil {
+        fmt.Printf("Couldn't send message %v\n", err)
+        return err
+    } else if resp.StatusCode != 200 && resp.StatusCode != 204 {
+        fmt.Printf("HTTP StatusCode %v, %v\n", resp.StatusCode, resp)
+        return err
+    }
+    return nil
+}
+
+func (m *Quote) String() string {
+        return fmt.Sprintf("[price:%v, ric:%v]", m.price, m.ric)
 }
