@@ -40,30 +40,30 @@ func (m *Quote) getQuote() (error) {
         fmt.Printf("Unknown response body\n")
         return err
     }
-    bodyStr := string(body)
-    runes := []rune(bodyStr)
-    jsonBlob := string(runes[2:strings.LastIndex(bodyStr, ")")])
+    bd := string(body)
+    runes := []rune(bd)
+    jsonBlob := string(runes[2:strings.LastIndex(bd, ")")])
 
     type QuoteResponse = map[string]interface{}
     type NodeList = []interface{}
-    quoteResponse := &QuoteResponse{}
-    if err := json.Unmarshal([]byte(jsonBlob), &quoteResponse); err != nil {
+    qp := &QuoteResponse{}
+    if err := json.Unmarshal([]byte(jsonBlob), &qp); err != nil {
         fmt.Printf("%v\n", err)
         return err
     }
-    for key, value := range (*quoteResponse)["data"].(QuoteResponse) {
-        if key == "datalist" {
-            prices := value.(NodeList)
-            if len(prices) < 1 {
+    for k, v := range (*qp)["data"].(QuoteResponse) {
+        if k == "datalist" {
+            pcs := v.(NodeList)
+            if len(pcs) < 1 {
                 fmt.Printf("No prices from HKEX\n")
                 return err
             }
-            prices = prices[1].(NodeList)
-            if len(prices) < 1 {
+            pcs = pcs[1].(NodeList)
+            if len(pcs) < 1 {
                 fmt.Printf("No prices from HKEX\n")
                 return err
             }
-            m.price = *big.NewFloat(prices[1].(float64))
+            m.price = *big.NewFloat(pcs[1].(float64))
             fmt.Printf("Quoted price: %v\n", m.price.String())
             break
         }
