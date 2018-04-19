@@ -59,9 +59,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	fmt.Printf("Author: %v, User: %v, Received Message: %v\n", m.Author.ID, s.State.User.ID, m.Content)
 	if strings.HasPrefix(m.Content, "!quote ") || strings.HasPrefix(m.Content, "!q ") {
 		args := strings.Fields(m.Content)[1:]
-		quote := new(Quote)
-		quote.webhook = webhook
-		quote.hkexToken = hkexToken
+		quote := &Quote{webhook: webhook, hkexToken: hkexToken}
 		if err := quote.getQuote(args); err != nil {
 			fmt.Printf("%v\n", err)
 			return
