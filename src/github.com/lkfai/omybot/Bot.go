@@ -36,7 +36,7 @@ func main() {
 	hkexToken = *hkexTokenPtr
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
-		fmt.Println("Error creating Discord session: ", err)
+		fmt.Printf("Error creating Discord session: %v\n", err)
 		return
 	}
 
@@ -45,10 +45,10 @@ func main() {
 
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("Error opening Discord session: ", err)
+		fmt.Printf("Error opening Discord session: %v\n", err)
 	}
 
-	fmt.Println("OMyBot is now running.  Press CTRL-C to exit.")
+	fmt.Printf("OMyBot is now running.  Press CTRL-C to exit.\n")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
@@ -64,28 +64,29 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
-	fmt.Println("Received Message: \n", m.Content)
+	fmt.Printf("Received Message: %v\n", m.Content)
 	if strings.HasPrefix(m.Content, "!quote ") || strings.HasPrefix(m.Content, "!q ") {
 		args := strings.Fields(m.Content)[1:]
-		err := sendQuote(args)
+		quote, err := getQuote(args)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("%v\n", err)
+			return
+		}
+		err = sendQuote(quote)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			return
 		}
 	}
 }
 
-func sendQuote(args []string) (err error) {
-	quote, err := getQuote(args)
-	if err != nil {
-		return err
-	}
+func sendQuote(quote string) (err error) {
 	resp, err := http.PostForm(webhook, url.Values{"content": {quote}, "tts": {"true"}})
 	if err != nil {
-		fmt.Println("Couldn't send message")
-		fmt.Println(err)
+		fmt.Printf("Couldn't send message %v\n", err)
 		return err
-	} else {
-		fmt.Println(resp)
+	} else if resp.StatusCode != 200 {
+		fmt.Printf("HTTP StatusCode %v, %v\n", resp.StatusCode, resp)
 		return err
 	}
 	return nil
@@ -102,16 +103,16 @@ func getQuote(args []string) (string, error) {
 	param.Add("callback", "a")
 	resp, err := http.Get("http://www1.hkex.com.hk/hkexwidget/data/getchartdata2?" + param.Encode())
 	if err != nil {
-		fmt.Println("Could not fetch quote")
+		fmt.Printf("Could not fetch quote\n")
 		return "nil", err
 	}
 	if resp.StatusCode != 200 {
-		fmt.Println("HTTP StatusCode not OK")
+		fmt.Printf("HTTP StatusCode not OK\n")
 		return "nil", err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Unknown response body")
+		fmt.Printf("Unknown response body\n")
 		return "nil", err
 	}
 	bodyStr := string(body)
@@ -121,25 +122,25 @@ func getQuote(args []string) (string, error) {
 	quoteResponse := *new(map[string]interface{})
 
 	if err := json.Unmarshal([]byte(jsonBlob), &quoteResponse); err != nil {
-        fmt.Println(err)
+        fmt.Printf("%v\n", err)
         return "nil", err
     }
     for key, value := range quoteResponse["data"].(map[string]interface{}) {
 	    if key == "datalist" {
 	    	prices := value.([]interface{})
 	    	if len(prices) < 1 {
-	    		fmt.Println("No prices from HKEX")
+	    		fmt.Printf("No prices from HKEX\n")
 	    		return "nil", err
 	    	}
 	    	prices = prices[1].([]interface{})
 	    	if len(prices) < 1 {
-	    		fmt.Println("No prices from HKEX")
+	    		fmt.Printf("No prices from HKEX\n")
 	    		return "nil", err
 	    	}
 	    	price = *big.NewFloat(prices[1].(float64))
 		    break
 	    }
 	}
-	fmt.Println("Quoted price: ", price.String())
+	fmt.Printf("Quoted price: %v\n", price.String())
 	return price.String(), nil
 }
