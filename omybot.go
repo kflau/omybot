@@ -33,7 +33,6 @@ func main() {
 	}
 
 	dg.AddHandler(ready)
-	dg.AddHandler(connect)
 	dg.AddHandler(messageCreate)
 
 	err = dg.Open()
@@ -54,7 +53,14 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Messages are boardcasted even to myself, ignore message sent by myself
-	if m.Author.ID == s.State.User.ID {
+	if m.Author.ID == s.State.User.ID { // exclude Bot (OMyBot#6634)
+		return
+	}
+	if m.Type == discordgo.MessageTypeGuildMemberJoin {
+		// TODO: Handle new member joined
+		return
+	}
+	if len(m.Content) <= 0 {
 		return
 	}
 	args := strings.Fields(m.Content)[1:]
@@ -72,8 +78,4 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		fmt.Printf("%v\n", err)
 		return
 	}
-}
-
-func connect(s *discordgo.Session, m *discordgo.Connect) {
-
 }
