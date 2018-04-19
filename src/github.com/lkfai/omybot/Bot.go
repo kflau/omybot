@@ -17,62 +17,23 @@ import (
 
 var (
 	webhook string 		= ""
-	ricCode string 		= ""
 	hkexToken string 	= ""
 )
-
-type QuoteApiResponse struct {
-	data QuoteData
-	qid string
-}
-
-func (b QuoteApiResponse) String() string {
-	return fmt.Sprintf("%+v", b)
-}
-
-type QuoteData struct {
-	responsecode string
-	responsemsg string
-	datalist [][]int
-	start_h int
-	start_m int
-	end_h int
-	end_m int
-}
-
-func (b QuoteData) String() string {
-	return fmt.Sprintf("%+v", b.datalist)
-}
 
 func main() {
 	tokenPtr := flag.String("token", "", "Discord Bot token")
 	webhookPtr := flag.String("webhook", "", "Discord Webhook URL")
-	ricCodePtr := flag.String("ricCode", "", "RIC")
 	hkexTokenPtr := flag.String("hkexToken", "", "HKEX Token")
 	flag.Parse()
 
+	if *tokenPtr == "" || *webhookPtr == "" || *hkexTokenPtr == "" {
+		flag.PrintDefaults()
+		return
+	}
+
 	token := *tokenPtr
-	if token == "" {
-		fmt.Println("No token provided. -token <bot token>")
-		return
-	}
 	webhook = *webhookPtr
-	if webhook == "" {
-		fmt.Println("No webhook provided. -webhook <webhook URL>")
-		return
-	}
-	ricCode = *ricCodePtr
-	if ricCode == "" {
-		fmt.Println("No ricCode provided. -ricCode <ricCode URL>")
-		return
-	}
 	hkexToken = *hkexTokenPtr
-	if hkexToken == "" {
-		fmt.Println("No hkexToken provided. -hkexToken <hkexToken URL>")
-		return
-	}
-	
-	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		fmt.Println("Error creating Discord session: ", err)
@@ -91,8 +52,6 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-
-	// Cleanly close down the Discord session.
 	dg.Close()
 }
 
