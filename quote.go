@@ -18,15 +18,15 @@ type Quote struct {
 }
 
 func (m *Quote) getQuote() (error) {
-    param := url.Values{}
-    param.Set("hchart", "1")
-    param.Add("span", "0")
-    param.Add("int", "0")
-    param.Add("qid", "1524020346220")
-    param.Add("ric", m.ric)
-    param.Add("token", m.hkexToken)
-    param.Add("callback", "a")
-    resp, err := http.Get("http://www1.hkex.com.hk/hkexwidget/data/getchartdata2?" + param.Encode())
+    pm := url.Values{}
+    pm.Set("hchart", "1")
+    pm.Add("span", "0")
+    pm.Add("int", "0")
+    pm.Add("qid", "1524020346220")
+    pm.Add("ric", m.ric)
+    pm.Add("token", m.hkexToken)
+    pm.Add("callback", "a")
+    resp, err := http.Get("http://www1.hkex.com.hk/hkexwidget/data/getchartdata2?" + pm.Encode())
     if err != nil {
         fmt.Printf("Could not fetch quote\n")
         return err
@@ -41,13 +41,13 @@ func (m *Quote) getQuote() (error) {
         return err
     }
     bd := string(body)
-    runes := []rune(bd)
-    jsonBlob := string(runes[2:strings.LastIndex(bd, ")")])
+    rn := []rune(bd)
+    bb := string(rn[2:strings.LastIndex(bd, ")")])
 
     type QuoteResponse = map[string]interface{}
     type NodeList = []interface{}
     qp := &QuoteResponse{}
-    if err := json.Unmarshal([]byte(jsonBlob), &qp); err != nil {
+    if err := json.Unmarshal([]byte(bb), &qp); err != nil {
         fmt.Printf("%v\n", err)
         return err
     }
