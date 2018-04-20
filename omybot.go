@@ -56,25 +56,28 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if botName == m.Author.Username && m.Author.Bot {
 		return
 	}
+
+	hdr := New()
 	if m.Type == discordgo.MessageTypeGuildMemberJoin {
-		// TODO: Handle new member joined
+		if str, err := hdr.MemberJoin(m); err != nil {
+			fmt.Printf("Cannot handle MemberJoin [%#v] due to %#v\n", str, err)
+		}
 		return
 	}
 	if len(m.Content) <= 0 {
 		return
 	}
 	args := strings.Fields(m.Content)[1:]
-	if len(args) <= 0 {
-		fmt.Printf("Please specify RIC\n")
+	if !hdr.Parse(args) {
+		fmt.Printf("Not a quote format\n")
 		return
 	}
-	ric := strings.TrimSpace(args[0])
-	quote := &Quote{Webhook: webhook, Ric: ric}
-	if err := quote.getQuote(); err != nil {
+	if err := hdr.Forward(args); err != nil {
 		fmt.Printf("%v\n", err)
 		return
 	}
-	if err := quote.sendQuote(); err != nil {
+	args = append([]string{webhook}, args...)
+	if err := hdr.Reply(args); err != nil {
 		fmt.Printf("%v\n", err)
 		return
 	}

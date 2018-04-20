@@ -6,13 +6,17 @@ import (
 
 type MessageCreateHandler interface {
 
-	New() interface{}
+	New() *MessageCreateHandler
 
 	Type() string
 
+    Parse([]string) bool
+
+    String() string
+
 	MemberJoin(*discordgo.MessageCreate) (string, error)
 
-	Forward(*discordgo.MessageCreate) (string, error)
+	Forward([]string) (error)
 
-	Reply(*discordgo.MessageCreate) (string, error)
+	Reply([]string) (error)
 }

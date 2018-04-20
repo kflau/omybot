@@ -7,6 +7,7 @@ import (
     "net/url"
     "io/ioutil"
     "encoding/json"
+    "github.com/bwmarrin/discordgo"
 )
 
 type Quote struct {
@@ -36,7 +37,27 @@ type Statistics struct {
     Low             []float64           `json:"low"`
 }
 
-func (m *Quote) getQuote() (error) {
+func New() *Quote {
+    return &Quote{}
+}
+
+func Type() string {
+    return "Quote"
+}
+
+func (m *Quote) Parse(args []string) bool {
+    if len(args) <= 0 || len(args) > 1 {
+        return false
+    }
+    return true
+}
+
+func (m *Quote) MemberJoin(args *discordgo.MessageCreate) (string, error) {
+    return "", nil
+}
+
+func (m *Quote) Forward(args []string) (error) {
+    m.Ric = args[0]
     pm := url.Values{}
     pm.Set("region", "HK")
     pm.Add("lang", "zh-Hant-HK")
@@ -79,7 +100,8 @@ func (m *Quote) getQuote() (error) {
     return nil
 }
 
-func (m *Quote) sendQuote() (error) {
+func (m *Quote) Reply(args []string) (error) {
+    m.Webhook = args[0]
     resp, err := http.PostForm(m.Webhook, url.Values{"content": {m.Price.String()}, "tts": {"true"}})
     if err != nil {
         fmt.Printf("Couldn't send message %v\n", err)
