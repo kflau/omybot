@@ -23,7 +23,7 @@ type Chart struct {
     Error           string              `json:"error"`
 }
 type Result struct {
-    Indicator      Indicator            `json:"indicators"`
+    Indicator       Indicator           `json:"indicators"`
 }
 type Indicator struct {
     Quote           []Statistics        `json:"quote"`
