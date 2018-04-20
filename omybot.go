@@ -12,7 +12,6 @@ import (
 
 var (
 	webhook 		string
-	hkexToken 		string
 	botName 		string
 )
 
@@ -20,10 +19,9 @@ func main() {
 	token := ""
 	flag.StringVar(&token, "token", "", "Discord Bot token")
 	flag.StringVar(&webhook, "webhook", "", "Discord Webhook URL")
-	flag.StringVar(&hkexToken, "hkexToken", "", "HKEX Token")
 	flag.StringVar(&botName, "botName", "", "HKEX Token")
 	flag.Parse()
-	if token == "" || webhook == "" || hkexToken == "" || botName == "" {
+	if token == "" || webhook == "" || botName == "" {
 		flag.PrintDefaults()
 		return
 	}
@@ -71,7 +69,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	ric := strings.TrimSpace(args[0])
-	quote := &Quote{webhook: webhook, hkexToken: hkexToken, ric: ric}
+	quote := &Quote{Webhook: webhook, Ric: ric}
 	if err := quote.getQuote(); err != nil {
 		fmt.Printf("%v\n", err)
 		return

@@ -2,7 +2,6 @@ package main
 
 import (
     "fmt"
-    "strings"
     "math/big"
     "net/http"
     "net/url"
@@ -11,22 +10,43 @@ import (
 )
 
 type Quote struct {
-    price           big.Float
-    webhook         string
-    ric             string
-    hkexToken       string
+    Price           big.Float
+    Webhook         string
+    Ric             string
+}
+
+type QuoteResponse struct {
+    Chart           Chart               `json:"chart"`
+}
+type Chart struct {
+    Result          []Result            `json:"result"`
+    Error           string              `json:"error"`
+}
+type Result struct {
+    Indicator      Indicator            `json:"indicators"`
+}
+type Indicator struct {
+    Quote           []Statistics        `json:"quote"`
+}
+type Statistics struct {
+    Close           []float64           `json:"close"`
+    Volume          []float64           `json:"volume"`
+    High            []float64           `json:"high"`
+    Open            []float64           `json:"open"`
+    Low             []float64           `json:"low"`
 }
 
 func (m *Quote) getQuote() (error) {
     pm := url.Values{}
-    pm.Set("hchart", "1")
-    pm.Add("span", "0")
-    pm.Add("int", "0")
-    pm.Add("qid", "1524020346220")
-    pm.Add("ric", m.ric)
-    pm.Add("token", m.hkexToken)
-    pm.Add("callback", "a")
-    resp, err := http.Get("http://www1.hkex.com.hk/hkexwidget/data/getchartdata2?" + pm.Encode())
+    pm.Set("region", "HK")
+    pm.Add("lang", "zh-Hant-HK")
+    pm.Add("range", "1d")
+    pm.Add("includePrePost", "false")
+    pm.Add("interval", "2m")
+    pm.Add("corsDomain", "hk.finance.yahoo.com")
+    pm.Add(".tsrc", "finance")
+    url := "http://query1.finance.yahoo.com/v8/finance/chart/" + m.Ric + "?" + pm.Encode()
+    resp, err := http.Get(url)
     if err != nil {
         fmt.Printf("Could not fetch quote\n")
         return err
@@ -40,39 +60,27 @@ func (m *Quote) getQuote() (error) {
         fmt.Printf("Unknown response body\n")
         return err
     }
-    bd := string(body)
-    rn := []rune(bd)
-    bb := string(rn[2:strings.LastIndex(bd, ")")])
-
-    type QuoteResponse = map[string]interface{}
-    type NodeList = []interface{}
     qp := &QuoteResponse{}
-    if err := json.Unmarshal([]byte(bb), &qp); err != nil {
+    if err := json.Unmarshal(body, &qp); err != nil {
         fmt.Printf("%v\n", err)
         return err
     }
-    for k, v := range (*qp)["data"].(QuoteResponse) {
-        if k == "datalist" {
-            pcs := v.(NodeList)
-            if len(pcs) < 1 {
-                fmt.Printf("No prices from HKEX\n")
-                return err
+    if r := qp.Chart.Result; len(r) > 0 {
+        ind := r[0].Indicator
+        if q := ind.Quote; len(q) > 0 {
+            for _, v := range q[0].Close {
+                if v > 0 {
+                    m.Price = *big.NewFloat(v)
+                    break
+                }
             }
-            pcs = pcs[1].(NodeList)
-            if len(pcs) < 1 {
-                fmt.Printf("No prices from HKEX\n")
-                return err
-            }
-            m.price = *big.NewFloat(pcs[1].(float64))
-            fmt.Printf("Quoted price: %v\n", m.price.String())
-            break
         }
     }
     return nil
 }
 
 func (m *Quote) sendQuote() (error) {
-    resp, err := http.PostForm(m.webhook, url.Values{"content": {m.price.String()}, "tts": {"true"}})
+    resp, err := http.PostForm(m.Webhook, url.Values{"content": {m.Price.String()}, "tts": {"true"}})
     if err != nil {
         fmt.Printf("Couldn't send message %v\n", err)
         return err
@@ -84,5 +92,5 @@ func (m *Quote) sendQuote() (error) {
 }
 
 func (m *Quote) String() string {
-        return fmt.Sprintf("[price:%v, ric:%v]", m.price, m.ric)
+    return fmt.Sprintf("%#v", m)
 }
