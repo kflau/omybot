@@ -17,9 +17,3 @@ Setup should be ready by these steps
 * Generate OAuth2 URL and choose "Send Message", then select a channel, click Authorize
 
 * Open Discord and enter the selected channel settings, create a webhook and copy the URL as shell argument
-
-**Usage**
-
-In project root directory, build a docker image <code>docker build -t omybot .</code>
-
-Open Discord with the selected channel, send "!quote 0005.HK" and see the magic
