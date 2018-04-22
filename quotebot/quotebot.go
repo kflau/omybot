@@ -40,7 +40,7 @@ func main() {
 		fmt.Printf("Error opening Discord session: %v\n", err)
 	}
 
-	fmt.Printf("OMyBot is now running.  Press CTRL-C to exit.\n")
+	fmt.Printf("QuoteBot is now running.  Press CTRL-C to exit.\n")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
@@ -48,7 +48,7 @@ func main() {
 }
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
-	s.UpdateStatus(0, "OMyBot")
+	s.UpdateStatus(0, "QuoteBot")
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -57,9 +57,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	hdr := NewQuote()
+	qt := NewQuote()
 	if m.Type == discordgo.MessageTypeGuildMemberJoin {
-		if str, err := hdr.MemberJoin(m); err != nil {
+		if str, err := qt.MemberJoin(m); err != nil {
 			fmt.Printf("Cannot handle MemberJoin [%#v] due to %#v\n", str, err)
 		}
 		return
@@ -68,16 +68,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	args := strings.Fields(m.Content)[1:]
-	if !hdr.Parse(args) {
+	if !qt.Parse(args) {
 		fmt.Printf("Not a quote format\n")
 		return
 	}
-	if err := hdr.Forward(args); err != nil {
+	if err := qt.Forward(args); err != nil {
 		fmt.Printf("%v\n", err)
 		return
 	}
 	args = append([]string{webhook}, args...)
-	if err := hdr.Reply(args); err != nil {
+	if err := qt.Reply(args); err != nil {
 		fmt.Printf("%v\n", err)
 		return
 	}
