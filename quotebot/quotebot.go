@@ -47,6 +47,8 @@ type Statistics struct {
 	Low    []float64 `json:"low"`
 }
 
+// --------------------------------- Begin of Quote ---------------------------------
+
 func NewQuote() *Quote {
 	return &Quote{}
 }
@@ -56,6 +58,7 @@ func (m *Quote) Type() string {
 }
 
 func (m *Quote) Parse(args []string) bool {
+
 	if len(args) <= 0 || len(args) > 1 {
 		return false
 	}
@@ -126,6 +129,8 @@ func (m *Quote) Reply(args []string) error {
 func (m *Quote) String() string {
 	return fmt.Sprintf("%#v", m)
 }
+
+// --------------------------------- End of Quote ---------------------------------
 
 func main() {
 	token := ""
