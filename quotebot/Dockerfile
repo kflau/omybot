@@ -7,4 +7,7 @@ WORKDIR $GOPATH/src/github.com/lkfai/omybot/quotebot/
 RUN go install -a
 RUN chmod a+x $GOPATH/bin/quotebot
 RUN rm -fr $GOPATH/src/github.com/lkfai/omybot/
+RUN chsh -s /bin/false
+RUN useradd -ms /usr/sbin/nologin app
+USER app
 CMD ["/go/bin/quotebot"]
